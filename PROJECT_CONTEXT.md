@@ -31,3 +31,10 @@ AI는 현재 요소 보완, 전체 기획안 생성, 설정 충돌 검토를 제
 
 ## 개발 환경
 Node 22.13 이상. 현재 package manager와 lockfile을 보존한다. npm run dev, npm run build, npm run db:generate 스크립트가 있다. Sites는 .openai/hosting.json의 project_id를 재사용한다. 저장에는 D1 바인딩과 마이그레이션이 필요하다. 사용자별 인증은 app/chatgpt-auth.ts를 사용하며 로컬 개발은 README의 portable 개발 인증 방식을 따른다. WebMCP를 지원하지 않는 브라우저에서도 UI는 작동한다.
+
+## 2026-10-09 GitHub Pages 공개 버전
+- 대표 주소: https://seokhee5hs.github.io/webstory/
+- pages/main.tsx와 vite.pages.config.ts가 기존 Workspace를 재사용해 독립적인 정적 앱을 빌드한다.
+- localOnly 모드에서는 lib/local-plans.ts로 현재 브라우저에만 기획을 저장하고 서버 API를 호출하지 않는다.
+- AI 연결 방식은 미정이며 안내만 제공한다. 기존 Sites 서버 구현과 데이터는 유지된다.
+- GitHub Actions는 main push 후 검사와 Pages 배포를 수행한다. 기존 Sites의 배포는 변경하지 않는다.
