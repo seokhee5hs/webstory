@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {Dialog} from '@base-ui/react/dialog';
 import {BookOpen,Sparkles,Check,Plus,Save,Download,Settings2,FolderOpen,FileText,Users,PenLine,X,CheckCircle2,AlertCircle,Copy,LoaderCircle,ChevronLeft,ChevronRight,ShieldCheck,Cable,Menu,Upload} from 'lucide-react';
 import {ELEMENTS,blankPlan,samplePlan,completion,planSchema,planMarkdown,type Plan,type ElementId,type Character,type Relationship} from '../lib/planning';
@@ -12,7 +12,7 @@ function download(name:string,data:string,type:string){const url=URL.createObjec
 function ReportText({text}:{text:string}){return <div className='report-text'>{text.split('\n').map((line,i)=>line.startsWith('### ')?<h4 key={i}>{line.slice(4)}</h4>:line.startsWith('## ')?<h3 key={i}>{line.slice(3)}</h3>:line.startsWith('# ')?<h2 key={i}>{line.slice(2)}</h2>:<p key={i}>{line||'\u00a0'}</p>)}</div>}
 const characterFields=[['name','이름','인물의 이름'],['role','서사 역할','주인공, 조력자, 적대자'],['age','나이','실제 나이 또는 인지된 나이'],['gender','성별','작가 설정에 필요한 경우'],['position','직업과 직위','예: 개발팀 팀장'],['voice','기본 말투','말버릇, 어휘, 표현 방식'],['desire','욕망과 목표','무엇을 원하는가'],['weakness','약점과 결핍','왜 쉽게 이루지 못하는가']] as const;
 const relationFields=[['relation','관계와 위계','예: 부하와 팀장, 친구'],['context','적용 상황','예: 업무 중, 사적인 둘만의 대화'],['styles','허용 말씨','예: 해요체 또는 하십시오체'],['address','청자 호칭','예: 팀장님, 이름, 별명'],['selfTerm','화자 자칭','예: 저, 나'],['validFrom','유효 시점','예: 1회차 이후, 8회차 합의 이후']] as const;
-export default function Workspace(){
+export default function Workspace({signedIn,accountLink}:{signedIn:boolean;accountLink:ReactNode}){
  const [plan,setPlan]=useState<Plan>(blankPlan),[active,setActive]=useState<ElementId>('genre'),[view,setView]=useState<View>('elements');
  const [projectId,setProjectId]=useState<string|null>(null),[revision,setRevision]=useState<number|null>(null),[savedSnapshot,setSavedSnapshot]=useState(JSON.stringify(blankPlan())),[lastSaved,setLastSaved]=useState(''),[projects,setProjects]=useState<Project[]>([]);
  const [saving,setSaving]=useState(false),[loading,setLoading]=useState(false),[busy,setBusy]=useState<string|null>(null),[notice,setNotice]=useState<{text:string;error:boolean}|null>(null);
@@ -22,7 +22,7 @@ export default function Workspace(){
  const notify=(text:string,error=false)=>setNotice({text,error});
  const update=(fn:(p:Plan)=>Plan)=>setPlan(p=>fn(p));
  const refreshProjects=async()=>{try{const r=await fetch('/api/plans',{cache:'no-store'});if(r.ok)setProjects((await readJson(r)).projects)}catch{}};
- useEffect(()=>{void refreshProjects()},[]);
+ useEffect(()=>{if(signedIn)void refreshProjects()},[signedIn]);
  useEffect(()=>{if(!dirty)return;const guard=(e:BeforeUnloadEvent)=>{e.preventDefault();e.returnValue=''};window.addEventListener('beforeunload',guard);return()=>window.removeEventListener('beforeunload',guard)},[dirty]);
  useEffect(()=>{if(!notice)return;const t=setTimeout(()=>setNotice(null),9000);return()=>clearTimeout(t)},[notice]);
  const navigate=(id:ElementId)=>{setActive(id);setView('elements');setMobileNav(false)};
@@ -62,6 +62,7 @@ export default function Workspace(){
   <div className='sidebar-bottom'><div className='progress-heading'><span>기획 작성</span><strong>{count}<small> / 10</small></strong></div><div className='progress-track'><div style={{width:`${count*10}%`}}/></div><p>각 요소의 세 항목을 채우면 완료로 표시됩니다.</p><button disabled={saving||loading||!!busy} onClick={()=>newPlan(true)}>예시 기획 살펴보기</button></div>
  </aside>
  <div className='workspace-shell'><header className='topbar'><div className='topbar-title'><button className='mobile-menu icon-button' aria-label='기획 요소 탐색 열기' onClick={()=>setMobileNav(true)}><Menu size={20}/></button><span>작가의 작업실</span><span className='save-state'>{saving?'저장 중…':dirty?'저장하지 않은 변경':lastSaved?'저장됨':'새 기획'}</span></div><div className='header-actions'><button className='button ghost' disabled={saving||!!busy} onClick={()=>{void refreshProjects();setLoadOpen(true)}}><FolderOpen size={17}/><span>불러오기</span></button><button className={`button ghost ${connected?'connected':''}`} onClick={()=>setApiOpen(true)}><Settings2 size={17}/><span>AI 설정</span></button><details className='export-menu'><summary className='button ghost'><Download size={17}/><span>내보내기</span></summary><div className='export-options'><button onClick={()=>exportPlan('md')}>기획안 Markdown</button><button onClick={()=>exportPlan('json')}>기획 데이터 JSON</button><button onClick={()=>exportPlan('codex')}>Codex 개발 맥락</button><button disabled={saving||!!busy} onClick={()=>importRef.current?.click()}>기획 JSON 가져오기</button></div></details><button className='button primary save-button' disabled={saving||loading} onClick={()=>void save()}>{saving?<LoaderCircle className='spin' size={17}/>:<Save size={17}/>}저장</button></div></header>
+  <div className='account-bar'><p>{signedIn?'내 계정에 기획을 저장할 수 있습니다.':'로그인 없이 작성하고 내보낼 수 있습니다. 서버 저장과 AI 사용은 로그인 후 가능합니다.'}</p><div onClick={e=>{if(dirty&&!window.confirm('로그인 상태를 바꾸면 저장하지 않은 내용이 사라집니다. 기획 데이터 JSON으로 내보낸 뒤 이동하는 것을 권장합니다. 지금 이동할까요?'))e.preventDefault()}}>{accountLink}</div></div>
   <input ref={importRef} type='file' accept='.json,application/json' hidden onChange={e=>{const f=e.target.files?.[0];if(f)void importPlan(f)}}/>
   <div className='workspace-columns'><main className='editor'>
    <section className='project-intro'><div className='eyebrow'><PenLine size={15}/>나의 웹소설 기획</div><input className='project-title' aria-label='작품 제목' maxLength={200} placeholder='이야기의 제목을 지어보세요' value={plan.title} onChange={e=>update(p=>({...p,title:e.target.value}))}/><textarea className='logline' aria-label='로그라인' maxLength={2000} rows={2} placeholder='누가, 무엇을 원하고, 어떤 장애물을 넘어서는 이야기인가요? 로그라인 한 문장으로 시작하세요.' value={plan.logline} onChange={e=>update(p=>({...p,logline:e.target.value}))}/></section>

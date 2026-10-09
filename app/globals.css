@@ -10,3 +10,5 @@
 @media(max-width:420px){.form-grid,.relation-direction{grid-template-columns:1fr}.section-kicker{letter-spacing:1px}.topbar .button{gap:5px}.ai-actions{flex-direction:column}.ai-actions .button{width:100%}.element-footer .button{font-size:14px;padding:9px}.sub-heading h2{font-size:16px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}.spin{animation:none}}
 @media print{.sidebar,.topbar,.ai-panel,.workspace-tabs,.toast,.modal,.element-footer,button{display:none!important}.workspace-shell{margin:0;width:100%}.workspace-columns{display:block}.editor{padding:0}.studio{display:block}.summary-section{break-inside:avoid}body{font-size:12pt;background:white}}
+
+.account-bar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;background:#eef4ff;border-bottom:1px solid var(--line)}.account-bar p{margin:0;font-size:14px;line-height:1.6}.account-bar a{white-space:nowrap;text-decoration:none}.account-bar>div{flex-shrink:0}@media(max-width:740px){.account-bar{flex-wrap:wrap;padding:12px 21px;gap:4px}}@media print{.account-bar{display:none}}
